@@ -167,7 +167,6 @@ func main() {
 	queueName := "fasten-reporter"
 	log.Printf("Listening to queue: %s", queueName)
 	queue := declareQueue(ch, queueName)
-	failOnError(err, "Failed to declare a queue")
 
 	// Consuming a message
 	msgs, err := ch.Consume(
