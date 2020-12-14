@@ -87,7 +87,7 @@ func GetAllFileNodesMetadata(infotype string, datatype string) ([]*service.FileN
 		result = append(result, &service.FileNode{
 			Path: path,
 			FileData: &service.FileNode_FileDataNode{
-				FileDataNodeType: hash,
+				Hash: hash,
 				AdditionalInfo: []*service.InfoNode{{
 					DataNodes: []*service.InfoNode_DataNode{{
 						Data: license,
