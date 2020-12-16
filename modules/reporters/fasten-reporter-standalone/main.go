@@ -100,16 +100,62 @@ func GetAllFileNodesMetadata(infotype string, datatype string) ([]*service.FileN
 	return result, nil
 }
 
+func GetPackageInfo() (*service.PackageNode, error) {
+
+	// Creating a DGraph client
+	conn, err := grpc.Dial(os.Getenv("DB_ADDRESS"), grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	dgraphClient := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
+	// Executing query
+	const q = `{
+	PackageNodes(func: has(packageNodeType)) {
+		name
+		version
+	}}`
+	queryResult, err := dgraphClient.NewTxn().QueryWithVars(context.Background(), q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshaling to key-value map
+	var m map[string]interface{}
+	err = json.Unmarshal(queryResult.Json, &m)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Constructing the result
+	packageNodes := m["PackageNodes"].([]interface{})
+	for _, packageNode := range packageNodes {
+		name := packageNode.(map[string]interface{})["name"].(string)
+		version := packageNode.(map[string]interface{})["version"].(string)
+		return &service.PackageNode{
+			Name:    name,
+			Version: version,
+		}, nil
+	}
+
+	return nil, nil
+}
+
 func collectLicenses() (string, error) {
+
+	// Retrieving package information
+	packageInfo, err := GetPackageInfo()
+	failOnError(err, "couldn't retrieve package info")
 
 	// Response object initialization
 	response := &service.FastenResponse{}
 	response.PluginName = "QMSTR"
 	response.PluginVersion = "0.0.1"
 	response.Input = &service.FastenResponse_FastenInput{}
-	//response.Input.Product = // TODO fill in
+	response.Input.Product = packageInfo.Name
 	//response.Input.Forge = // TODO fill in
-	//response.Input.Version = // TODO fill in
+	response.Input.Version = packageInfo.Version
 	response.CreatedAt = ptypes.TimestampNow()
 	response.Payload = &service.FastenResponse_Report{Report: &service.FastenReport{
 		PackageMetadata: &service.FastenReport_PackageMetadata{},
