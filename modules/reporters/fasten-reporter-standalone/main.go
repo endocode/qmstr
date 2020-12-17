@@ -112,7 +112,7 @@ func GetPackageInfo() (*service.PackageNode, error) {
 
 	// Executing query
 	const q = `{
-	PackageNodes(func: has(packageNodeType)) {
+	PackageNodes(func: has(packageNodeType)) @filter(has(targets)) {
 		name
 		version
 	}}`
