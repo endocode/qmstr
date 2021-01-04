@@ -55,7 +55,7 @@ func GetAllFileNodesMetadata(infotype string, datatype string) ([]*service.FileN
 			path
 			fileData { # FileDataNodes
 				hash
-				additionalInfo @filter(eq(type, $itype))(orderdesc: confidenceScore, first: 1) { # InfoNodes
+				additionalInfo @filter(eq(type, $itype)) { # InfoNodes
 					type
 					dataNodes @filter(eq(type, $dtype)) { # DataNodes
 						data
